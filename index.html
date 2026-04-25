@@ -719,26 +719,45 @@ async function previewImage() {
 // 공유하기 (카톡 등)
 async function shareImage() {
   showToast('이미지 생성 중...');
-  const canvas = await captureTableImage();
-  canvas.toBlob(async function(blob) {
+  try {
+    const canvas = await captureTableImage();
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     const date = document.getElementById('meta-date').value;
     const service = document.getElementById('meta-service').value || '예배';
     const fileName = '큐시트_' + date + '_' + service + '.png';
     const file = new File([blob], fileName, { type: 'image/png' });
+    const shareTitle = date + ' ' + service + ' 큐시트';
 
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    // 1차: 파일 공유 시도
+    if (navigator.share) {
       try {
-        await navigator.share({ files: [file], title: '예배 큐시트', text: date + ' ' + service + ' 큐시트' });
-      } catch (e) {
-        // 공유 취소 등
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: shareTitle });
+          return;
+        }
+      } catch (e) { if (e.name !== 'AbortError') console.log('File share failed:', e); }
+
+      // 2차: 텍스트+URL 공유 (파일 공유 미지원 시)
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        await navigator.share({ title: shareTitle, text: shareTitle });
+        // 공유 후 이미지 다운로드
         downloadBlob(blob, fileName);
-      }
-    } else {
+        showToast('이미지도 다운로드되었습니다');
+        return;
+      } catch (e) { if (e.name !== 'AbortError') console.log('Text share failed:', e); }
+    }
+
+    // 3차: 공유 API 미지원 → 다운로드
+    {
       // 공유 API 미지원 시 다운로드
       downloadBlob(blob, fileName);
       showToast('이미지가 다운로드되었습니다');
     }
-  }, 'image/png');
+  } catch(err) {
+    console.error('Share error:', err);
+    showToast('공유 중 오류가 발생했습니다');
+  }
 }
 
 function downloadBlob(blob, filename) {
