@@ -92,8 +92,25 @@
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">시간</label>
-          <input type="text" id="meta-time" value="오전 11시" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+          <label class="block text-sm font-medium text-gray-600 mb-1">예배 시작 시간</label>
+          <select id="meta-time" onchange="recalcTimes()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+            <option value="7:00">오전 7시</option>
+            <option value="8:00">오전 8시</option>
+            <option value="9:00">오전 9시</option>
+            <option value="9:30">오전 9시 30분</option>
+            <option value="10:00">오전 10시</option>
+            <option value="10:30">오전 10시 30분</option>
+            <option value="11:00" selected>오전 11시</option>
+            <option value="11:30">오전 11시 30분</option>
+            <option value="12:00">오후 12시</option>
+            <option value="13:00">오후 1시</option>
+            <option value="14:00">오후 2시</option>
+            <option value="15:00">오후 3시</option>
+            <option value="16:00">오후 4시</option>
+            <option value="17:00">오후 5시</option>
+            <option value="19:00">오후 7시</option>
+            <option value="19:30">오후 7시 30분</option>
+          </select>
         </div>
       </div>
     </div>
@@ -204,24 +221,56 @@
   <div id="toast" class="fixed bottom-6 right-6 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm transform translate-y-20 opacity-0 transition-all duration-300 z-50"></div>
 
 <script>
-// Default template rows
-const DEFAULT_ROWS = [
-  { time: '~10:20', order: '예배준비', content: '예배 리허설', person: '', camera: '', ppt: '', isSermon: false },
-  { time: '~10:45', order: '예배준비', content: '예배 리허설', person: '찬양팀', camera: '', ppt: '', isSermon: false },
-  { time: '10:45~10:59', order: '예배준비', content: '환대 및 개인기도 / 예배로 나아가는 찬양', person: '찬양팀', camera: '', ppt: '찬양 가사', isSermon: false },
-  { time: '11:00~', order: '찬송', content: '입례송', person: '인도자', camera: '전체', ppt: '찬송가', isSermon: false },
-  { time: '', order: '예배로의 부름', content: '', person: '인도자', camera: '강대상', ppt: '', isSermon: false },
-  { time: '~11:15', order: '경배와 찬양', content: '', person: '찬양팀', camera: '찬양팀', ppt: '찬양 가사', isSermon: false },
-  { time: '11:15~', order: '합심기도', content: '가정 영역을 위한 기도', person: '인도자', camera: '회중', ppt: '기도제목', isSermon: false },
-  { time: '~11:20', order: '대표기도', content: '', person: '', camera: '강대상', ppt: '', isSermon: false },
-  { time: '11:20', order: '성가대', content: '', person: '성가대', camera: '성가대', ppt: '', isSermon: false },
-  { time: '~11:25', order: '성도의 교제', content: '', person: '인도자', camera: '회중', ppt: '', isSermon: false },
-  { time: '11:25~', order: '성경봉독', content: '', person: '인도자', camera: '강대상', ppt: '성경본문', isSermon: false },
-  { time: '', order: '설교', content: '', person: '담임목사', camera: '강대상', ppt: '설교 PPT', isSermon: true },
-  { time: '', order: '봉헌', content: '', person: '', camera: '회중', ppt: '봉헌 안내', isSermon: false },
-  { time: '', order: '봉헌기도 및 축도', content: '', person: '담임목사', camera: '강대상', ppt: '', isSermon: false },
-  { time: '', order: '축도 후', content: '', person: '', camera: '', ppt: '', isSermon: false },
+// 순서별 기본 소요 시간 (분)
+const ORDER_TEMPLATE = [
+  { order: '찬양', duration: 25, content: '', person: '', camera: '', ppt: '찬양 가사', isSermon: false },
+  { order: '기도', duration: 5, content: '', person: '', camera: '', ppt: '', isSermon: false },
+  { order: '말씀봉독', duration: 5, content: '', person: '', camera: '', ppt: '성경본문', isSermon: false },
+  { order: '설교', duration: 60, content: '', person: '', camera: '', ppt: '설교 PPT', isSermon: true },
+  { order: '기도', duration: 5, content: '', person: '', camera: '', ppt: '', isSermon: false },
+  { order: '봉헌', duration: 5, content: '', person: '', camera: '', ppt: '봉헌 안내', isSermon: false },
+  { order: '광고', duration: 5, content: '', person: '', camera: '', ppt: '광고 PPT', isSermon: false },
 ];
+
+function buildDefaultRows(startTime) {
+  const parts = startTime.split(':');
+  let h = parseInt(parts[0]), m = parseInt(parts[1] || 0);
+  const result = [];
+  for (const tmpl of ORDER_TEMPLATE) {
+    const startH = h, startM = m;
+    m += tmpl.duration;
+    while (m >= 60) { h++; m -= 60; }
+    const endH = h, endM = m;
+    const fmt = (hh,mm) => String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+    result.push({
+      time: fmt(startH, startM) + '~' + fmt(endH, endM),
+      order: tmpl.order,
+      duration: tmpl.duration,
+      content: tmpl.content,
+      person: tmpl.person,
+      camera: tmpl.camera,
+      ppt: tmpl.ppt,
+      isSermon: tmpl.isSermon,
+    });
+  }
+  return result;
+}
+
+const DEFAULT_ROWS = buildDefaultRows('11:00');
+
+function recalcTimes() {
+  const startTime = document.getElementById('meta-time').value;
+  const newRows = buildDefaultRows(startTime);
+  // 기존 담당자/내용 유지하면서 시간만 업데이트
+  for (let i = 0; i < rows.length && i < newRows.length; i++) {
+    rows[i].time = newRows[i].time;
+  }
+  // 행 수가 다르면 새로 생성
+  if (rows.length === 0) {
+    rows = newRows;
+  }
+  renderTable();
+}
 
 let rows = [];
 
@@ -255,7 +304,8 @@ function formatDateDisplay(dateStr) {
 }
 
 function resetToTemplate() {
-  rows = JSON.parse(JSON.stringify(DEFAULT_ROWS));
+  const startTime = document.getElementById('meta-time').value;
+  rows = buildDefaultRows(startTime);
   renderTable();
   document.querySelectorAll('.team-input').forEach(el => el.value = '');
 }
@@ -273,7 +323,7 @@ const TEAM_ROLE_MAP = {
 
 // 각 행의 원래 역할을 기억 (이름이 바뀌어도 역할 매핑 유지)
 function getOriginalRoles() {
-  return DEFAULT_ROWS.map(r => r.person);
+  return ORDER_TEMPLATE.map(r => r.person);
 }
 
 document.addEventListener('input', function(e) {
