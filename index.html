@@ -116,31 +116,31 @@
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="team-section">
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">설교자</label>
-          <input type="text" data-team="preacher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+          <input type="text" data-team="preacher" autocomplete="off" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">인도자</label>
-          <input type="text" data-team="leader" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+          <input type="text" data-team="leader" autocomplete="off" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">대표기도자</label>
-          <input type="text" data-team="prayer" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+          <input type="text" data-team="prayer" autocomplete="off" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">찬양팀</label>
-          <input type="text" data-team="worship" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+          <input type="text" data-team="worship" autocomplete="off" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">봉헌</label>
-          <input type="text" data-team="offering" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+          <input type="text" data-team="offering" autocomplete="off" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">안내</label>
-          <input type="text" data-team="usher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+          <input type="text" data-team="usher" autocomplete="off" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">영상팀</label>
-          <input type="text" data-team="media" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+          <input type="text" data-team="media" autocomplete="off" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
         </div>
       </div>
     </div>
@@ -174,17 +174,17 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-wrap gap-3 mb-5 no-print">
-      <button onclick="shareImage()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm">
-        📤 공유하기
+      <button onclick="previewImage()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm">
+        👁 미리보기
       </button>
-      <button onclick="saveImage()" class="bg-white hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-gray-200">
-        💾 저장하기
+      <button onclick="shareImage()" class="bg-white hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-gray-200">
+        📤 공유하기
       </button>
       <button onclick="resetToTemplate()" class="bg-white hover:bg-red-50 text-red-500 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-red-200">
         초기화
       </button>
     </div>
-    <!-- 저장된 이미지 표시 영역 -->
+    <!-- 미리보기/저장 이미지 표시 영역 -->
     <div id="saved-images" class="mb-10"></div>
   </div>
 
@@ -599,6 +599,22 @@ async function captureTableImage() {
   const canvas = await html2canvas(tmp, { scale: 2, useCORS: true, width: 900, backgroundColor: '#ffffff' });
   document.body.removeChild(tmp);
   return canvas;
+}
+
+// 미리보기 (아래에 이미지 표시)
+async function previewImage() {
+  showToast('미리보기 생성 중...');
+  const canvas = await captureTableImage();
+  const dataUrl = canvas.toDataURL('image/png');
+  const container = document.getElementById('saved-images');
+  container.innerHTML = '<div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100">' +
+    '<div class="flex items-center justify-between mb-3">' +
+    '<span class="text-sm font-semibold text-gray-700">미리보기</span>' +
+    '<button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600 text-sm">닫기</button>' +
+    '</div>' +
+    '<img src="' + dataUrl + '" class="w-full rounded-lg border border-gray-200" alt="큐시트 미리보기">' +
+    '</div>';
+  showToast('미리보기 완료!');
 }
 
 // 공유하기 (카톡 등)
