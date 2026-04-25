@@ -328,35 +328,30 @@ document.addEventListener('input', function(e) {
   const name = e.target.value.trim();
   if (!team) return;
 
-  const origRoles = getOriginalRoles();
+  rows.forEach((row) => {
+    const order = (row.order || '').toLowerCase();
 
-  rows.forEach((row, i) => {
-    const origPerson = origRoles[i] || '';
-    const order = row.order || '';
-
-    // 메신저 = 설교자 (담임목사 역할)
-    if (team === 'preacher' && (origPerson === '담임목사' || order.includes('설교') || order.includes('축도'))) {
-      row.person = name || '담임목사';
+    if (team === 'preacher' && (order.includes('설교') || order.includes('축도'))) {
+      row.person = name;
     }
-    // 인도자
-    if (team === 'leader' && origPerson === '인도자') {
-      row.person = name || '인도자';
+    if (team === 'leader' && (order.includes('말씀봉독') || order.includes('봉독'))) {
+      row.person = name;
     }
-    // 대표기도자
-    if (team === 'prayer' && order.includes('대표기도')) {
-      row.person = name || '';
+    if (team === 'prayer' && order.includes('기도') && !order.includes('설교')) {
+      // 기도 순서 중 첫번째와 마지막(설교 후 기도)에 기도자 배정
+      row.person = name;
     }
-    // 찬양팀
-    if (team === 'worship' && origPerson === '찬양팀') {
-      row.person = name || '찬양팀';
+    if (team === 'worship' && order.includes('찬양')) {
+      row.person = name;
     }
-    // 봉헌
-    if (team === 'offering' && order.includes('봉헌') && !order.includes('기도')) {
-      row.person = name || '';
+    if (team === 'offering' && order.includes('봉헌')) {
+      row.person = name;
     }
-    // 성가대
-    if (team === 'media' && origPerson === '성가대') {
-      row.person = name || '성가대';
+    if (team === 'usher' && order.includes('안내')) {
+      row.person = name;
+    }
+    if (team === 'media' && order.includes('광고')) {
+      row.person = name;
     }
   });
   renderTable();
