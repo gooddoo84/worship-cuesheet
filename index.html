@@ -111,6 +111,41 @@
       </div>
     </div>
 
+    <!-- 담당자 배정 (테이블 위) -->
+    <div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">담당자 배정</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="team-section">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">설교자</label>
+          <input type="text" data-team="preacher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">인도자</label>
+          <input type="text" data-team="leader" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">대표기도자</label>
+          <input type="text" data-team="prayer" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">찬양팀</label>
+          <input type="text" data-team="worship" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">봉헌</label>
+          <input type="text" data-team="offering" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">안내</label>
+          <input type="text" data-team="usher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">영상팀</label>
+          <input type="text" data-team="media" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300" placeholder="이름">
+        </div>
+      </div>
+    </div>
+
     <!-- Cue Sheet Table -->
     <div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100">
       <div class="flex items-center justify-between mb-4">
@@ -138,48 +173,13 @@
       </div>
     </div>
 
-    <!-- Team Assignment -->
-    <div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">담당자 배정</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="team-section">
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">설교자</label>
-          <input type="text" data-team="preacher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">인도자</label>
-          <input type="text" data-team="leader" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">대표기도자</label>
-          <input type="text" data-team="prayer" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">찬양팀</label>
-          <input type="text" data-team="worship" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">봉헌</label>
-          <input type="text" data-team="offering" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">안내</label>
-          <input type="text" data-team="usher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">영상팀</label>
-          <input type="text" data-team="media" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-        </div>
-      </div>
-    </div>
-
     <!-- Action Buttons -->
     <div class="flex flex-wrap gap-3 mb-10 no-print">
-      <button onclick="saveCueSheet()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm">
-        저장하기
-      </button>
-      <button onclick="showTab('preview')" class="bg-white hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-gray-200">
+      <button onclick="showTab('preview')" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm">
         미리보기
+      </button>
+      <button onclick="downloadPDF()" class="bg-white hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-gray-200">
+        PDF 다운로드
       </button>
       <button onclick="resetToTemplate()" class="bg-white hover:bg-red-50 text-red-500 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-red-200">
         초기화
