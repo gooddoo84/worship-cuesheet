@@ -19,9 +19,11 @@
     .tab-active { background-color: #f59e0b; color: white; }
     .tab-inactive { background-color: #f3f4f6; color: #374151; }
     .tab-inactive:hover { background-color: #e5e7eb; }
-    /* 모바일 테이블: 가로 스크롤 + 최소 폭 */
+    /* 테이블: 가로 스크롤 + 넉넉한 최소 폭, 셀 내용 절대 줄바꿈 안함 */
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .table-wrap table { min-width: 700px; }
+    .table-wrap table { min-width: 900px; table-layout: fixed; }
+    .table-wrap table th, .table-wrap table td { white-space: nowrap; overflow: visible; }
+    .table-wrap table input { min-width: 60px; }
     .table-wrap::-webkit-scrollbar { height: 4px; }
     .table-wrap::-webkit-scrollbar-thumb { background: #d4a017; border-radius: 4px; }
     table input, table textarea {
