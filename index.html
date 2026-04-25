@@ -587,25 +587,17 @@ function renderSavedList() {
 }
 
 // PDF
-// 테이블을 이미지로 캡처
+// 테이블을 이미지로 캡처 — 임시 div로 깨끗하게 렌더
 async function captureTableImage() {
-  // 임시 렌더용 div 생성 (넓은 폭, 화면 밖)
   renderPreview();
-  const previewEl = document.getElementById('preview-content');
-  previewEl.style.position = 'fixed';
-  previewEl.style.left = '-9999px';
-  previewEl.style.top = '0';
-  previewEl.style.width = '900px';
-  previewEl.style.display = 'block';
+  // 임시 div를 body에 추가 (화면 밖, 고정 폭)
+  const tmp = document.createElement('div');
+  tmp.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#fff;padding:24px;font-family:Noto Sans KR,sans-serif;';
+  tmp.innerHTML = document.getElementById('preview-content').innerHTML;
+  document.body.appendChild(tmp);
 
-  const canvas = await html2canvas(previewEl, { scale: 2, useCORS: true, width: 900 });
-
-  previewEl.style.position = '';
-  previewEl.style.left = '';
-  previewEl.style.top = '';
-  previewEl.style.width = '';
-  previewEl.style.display = '';
-
+  const canvas = await html2canvas(tmp, { scale: 2, useCORS: true, width: 900, backgroundColor: '#ffffff' });
+  document.body.removeChild(tmp);
   return canvas;
 }
 
