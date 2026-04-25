@@ -27,7 +27,8 @@
     /* 테이블 */
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .table-wrap table { min-width: 900px; table-layout: fixed; }
-    .table-wrap table th, .table-wrap table td { white-space: nowrap; overflow: visible; }
+    .table-wrap table th { white-space: nowrap; }
+    .table-wrap table td { white-space: normal; vertical-align: top; }
     .table-wrap table input { min-width: 60px; }
     .table-wrap::-webkit-scrollbar { height: 5px; }
     .table-wrap::-webkit-scrollbar-track { background: #f3ece0; border-radius: 5px; }
@@ -36,7 +37,10 @@
       background: transparent; border: none; width: 100%;
       padding: 4px 6px; font-size: 0.875rem;
       font-family: 'Noto Sans KR', sans-serif;
-      transition: all .2s;
+      transition: all .2s; min-height: 36px;
+    }
+    table textarea {
+      resize: none; overflow: hidden; min-height: 40px;
     }
     table input:focus, table textarea:focus {
       outline: none; background: #fffbeb;
@@ -83,9 +87,6 @@
       <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
         <span class="text-2xl">+</span> 예배 큐시트
       </h1>
-      <div class="flex gap-2">
-        <button onclick="showTab('editor')" id="tab-editor" class="px-4 py-2 rounded-lg text-sm font-medium transition tab-active">편집</button>
-      </div>
     </div>
   </header>
 
@@ -381,7 +382,7 @@ document.addEventListener('input', function(e) {
   const trs = tbody.querySelectorAll('tr');
   rows.forEach((row, i) => {
     if (trs[i]) {
-      const personInput = trs[i].querySelectorAll('input')[3]; // 4번째 input = 담당자
+      const personInput = trs[i].querySelectorAll('input')[2]; // 3번째 input = 담당자 (내용은 textarea)
       if (personInput && personInput !== document.activeElement) {
         personInput.value = row.person || '';
       }
@@ -398,7 +399,7 @@ function renderTable() {
     tr.innerHTML = `
       <td class="px-1 py-1"><input type="text" value="${esc(row.time)}" onchange="rows[${idx}].time=this.value" class="text-gray-600"></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.order)}" onchange="updateOrder(${idx}, this.value)" class="font-medium text-gray-800"></td>
-      <td class="px-1 py-1"><input type="text" value="${esc(row.content)}" onchange="rows[${idx}].content=this.value" class="text-gray-600"></td>
+      <td class="px-1 py-1"><textarea oninput="rows[${idx}].content=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px'" class="text-gray-600">${esc(row.content)}</textarea></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.person)}" onchange="rows[${idx}].person=this.value" class="text-gray-600"></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.camera)}" onchange="rows[${idx}].camera=this.value" class="text-gray-600"></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.ppt)}" onchange="rows[${idx}].ppt=this.value" class="text-gray-600"></td>
