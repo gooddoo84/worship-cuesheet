@@ -8,64 +8,109 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@400;700&display=swap');
-    body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(160deg, #faf8f4 0%, #f5f0e6 100%); min-height: 100vh; }
-    .sermon-row { background: linear-gradient(90deg, #fef9c3, #fef3c7) !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #f0f4ff 0%, #fce7f3 30%, #fef3c7 70%, #ecfdf5 100%);
+      background-attachment: fixed;
+      min-height: 100vh; color: #1e293b;
+    }
+    .sermon-row { background: linear-gradient(90deg, #fef9c3, #fde68a) !important; }
     @media print {
       .no-print { display: none !important; }
       body { padding: 0; margin: 0; background: #fff; }
     }
 
-    /* Header */
-    header { background: linear-gradient(135deg, #1f2937, #374151); border-bottom: 3px solid #d4a017; }
-    header h1 { color: #fbbf24; }
+    /* Animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+    /* Header — 밝고 화사 */
+    header {
+      background: rgba(255,255,255,.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 2px solid transparent;
+      border-image: linear-gradient(90deg, #f472b6, #fb923c, #facc15, #34d399, #60a5fa) 1;
+      box-shadow: 0 2px 16px rgba(0,0,0,.04);
+    }
+    header h1 { color: #1e293b; font-weight: 700; }
+    header h1 span { background: linear-gradient(135deg, #f472b6, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     /* Cards */
-    .card-section { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.06); border: 1px solid #ede5d8; overflow: hidden; }
-    .card-section::before { content: ''; display: block; height: 3px; background: linear-gradient(90deg, #d4a017, #f59e0b, #d4a017); }
+    .card-section {
+      background: rgba(255,255,255,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.03);
+      border: 1px solid rgba(255,255,255,.8); overflow: hidden;
+      animation: fadeUp .5s ease forwards;
+    }
+    .card-section::before {
+      content: ''; display: block; height: 3px;
+      background: linear-gradient(90deg, #f472b6, #fb923c, #facc15, #34d399, #60a5fa);
+    }
+
+    /* Section titles */
+    .section-title { color: #334155; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ''; width: 4px; height: 20px; border-radius: 4px; background: linear-gradient(180deg, #f472b6, #fb923c); }
 
     /* 테이블 */
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .table-wrap table { min-width: 900px; table-layout: fixed; }
     .table-wrap table th { white-space: nowrap; }
     .table-wrap table td { white-space: normal; vertical-align: top; height: auto; }
-    .table-wrap table tr { height: auto; }
+    .table-wrap table tr { height: auto; transition: background .15s; }
     .table-wrap table input { min-width: 60px; }
     .table-wrap::-webkit-scrollbar { height: 5px; }
-    .table-wrap::-webkit-scrollbar-track { background: #f3ece0; border-radius: 5px; }
-    .table-wrap::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #d4a017, #f59e0b); border-radius: 5px; }
+    .table-wrap::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 5px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #f472b6, #fb923c); border-radius: 5px; }
     table input, table textarea {
-      background: transparent; border: none; width: 100%;
-      padding: 4px 6px; font-size: 0.875rem;
+      background: transparent; border: none; width: 100%; color: #1e293b;
+      padding: 6px 8px; font-size: 0.875rem;
       font-family: 'Noto Sans KR', sans-serif;
       transition: all .2s; min-height: 36px;
     }
-    table textarea {
-      resize: none; overflow: hidden; min-height: 40px;
-    }
+    table textarea { resize: none; overflow: hidden; min-height: 40px; }
     table input:focus, table textarea:focus {
-      outline: none; background: #fffbeb;
-      box-shadow: inset 0 0 0 2px #f59e0b;
-      border-radius: 4px;
+      outline: none; background: #fef3c7;
+      box-shadow: inset 0 0 0 2px #fb923c;
+      border-radius: 6px;
     }
+    table input::placeholder, table textarea::placeholder { color: #94a3b8; }
+
+    /* Table header */
+    .table-header { background: linear-gradient(135deg, #6366f1, #8b5cf6) !important; }
 
     /* Buttons */
-    .btn-gold { background: linear-gradient(135deg, #d4a017, #f59e0b); color: #fff; border: none;
-      box-shadow: 0 4px 12px rgba(212,160,23,.3); transition: all .2s; }
-    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,160,23,.4); }
-    .btn-gold:active { transform: scale(.97); }
+    .btn-gold {
+      background: linear-gradient(135deg, #fb923c, #f472b6); color: #fff; border: none;
+      box-shadow: 0 4px 16px rgba(244,114,182,.3); transition: all .25s; font-weight: 600;
+    }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(244,114,182,.4); }
+    .btn-gold:active { transform: scale(.96); }
 
     /* Team inputs */
-    .team-input { transition: all .2s; border: 1px solid #e5ddd0 !important; }
-    .team-input:focus { border-color: #d4a017 !important; box-shadow: 0 0 0 3px rgba(212,160,23,.15) !important; }
+    .team-input {
+      transition: all .25s; border: 1px solid #e2e8f0 !important;
+      border-radius: 10px !important; color: #1e293b;
+    }
+    .team-input:focus {
+      border-color: #f472b6 !important;
+      box-shadow: 0 0 0 3px rgba(244,114,182,.15), 0 2px 8px rgba(244,114,182,.1) !important;
+    }
+    .team-input::placeholder { color: #94a3b8; }
 
-    .saved-item:hover { background-color: #fef3c7; }
-    .delete-row-btn { opacity: 0; transition: opacity 0.15s; }
+    .saved-item:hover { background-color: #fce7f3; }
+    .delete-row-btn { opacity: 0; transition: opacity .2s; }
     tr:hover .delete-row-btn { opacity: 1; }
 
-    /* Animations */
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-in { animation: fadeUp .4s ease forwards; }
+    /* Add row button */
+    .btn-add {
+      background: #f0fdf4; color: #16a34a; border: 1px dashed #86efac;
+      transition: all .2s; animation: float 3s ease-in-out infinite;
+    }
+    .btn-add:hover { background: #dcfce7; border-color: #4ade80; transform: scale(1.02); }
   </style>
   <script>
     tailwind.config = {
@@ -95,7 +140,7 @@
   <div id="view-editor" class="max-w-5xl mx-auto px-4 py-6">
     <!-- Meta Info -->
     <div class="card-section p-5 mb-5">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">기본 정보</h2>
+      <h2 class="section-title mb-4">기본 정보</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-600 mb-1">날짜</label>
@@ -132,7 +177,7 @@
 
     <!-- 담당자 배정 (테이블 위) -->
     <div class="card-section p-5 mb-5">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">담당자 배정</h2>
+      <h2 class="section-title mb-4">담당자 배정</h2>
       <form autocomplete="off" onsubmit="return false"><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="team-section">
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">설교자</label>
@@ -168,15 +213,15 @@
     <!-- Cue Sheet Table -->
     <div class="card-section p-5 mb-5">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-700">진행 순서</h2>
-        <button onclick="addRow()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-sm font-medium transition border border-amber-200">
+        <h2 class="section-title">진행 순서</h2>
+        <button onclick="addRow()" class="btn-add px-3 py-1.5 rounded-lg text-sm font-medium">
           + 행 추가
         </button>
       </div>
       <div class="table-wrap">
         <table class="w-full text-sm" id="cuesheet-table">
           <thead>
-            <tr class="bg-gray-800 text-white">
+            <tr class="table-header text-white">
               <th class="px-3 py-2 text-left rounded-tl-lg w-24">시간</th>
               <th class="px-3 py-2 text-left w-32">순서</th>
               <th class="px-3 py-2 text-left">내용</th>
