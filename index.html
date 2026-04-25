@@ -28,7 +28,8 @@
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .table-wrap table { min-width: 900px; table-layout: fixed; }
     .table-wrap table th { white-space: nowrap; }
-    .table-wrap table td { white-space: normal; vertical-align: top; }
+    .table-wrap table td { white-space: normal; vertical-align: top; height: auto; }
+    .table-wrap table tr { height: auto; }
     .table-wrap table input { min-width: 60px; }
     .table-wrap::-webkit-scrollbar { height: 5px; }
     .table-wrap::-webkit-scrollbar-track { background: #f3ece0; border-radius: 5px; }
@@ -400,7 +401,7 @@ function renderTable() {
     tr.innerHTML = `
       <td class="px-1 py-1"><input type="text" value="${esc(row.time)}" onchange="rows[${idx}].time=this.value" class="text-gray-600"></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.order)}" onchange="updateOrder(${idx}, this.value)" class="font-medium text-gray-800"></td>
-      <td class="px-1 py-1"><textarea oninput="rows[${idx}].content=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px'" class="text-gray-600">${esc(row.content)}</textarea></td>
+      <td class="px-1 py-1"><textarea rows="2" oninput="rows[${idx}].content=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px'" class="text-gray-600">${esc(row.content)}</textarea></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.person)}" onchange="rows[${idx}].person=this.value" class="text-gray-600"></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.camera)}" onchange="rows[${idx}].camera=this.value" class="text-gray-600"></td>
       <td class="px-1 py-1"><input type="text" value="${esc(row.ppt)}" onchange="rows[${idx}].ppt=this.value" class="text-gray-600"></td>
