@@ -71,7 +71,7 @@
       font-family: 'Noto Sans KR', sans-serif;
       transition: all .2s; min-height: 36px;
     }
-    table textarea { resize: none; overflow: hidden; min-height: 44px; display: block; line-height: 1.5; }
+    table textarea { resize: none; overflow-y: hidden; min-height: 44px; display: block; line-height: 1.5; word-break: break-all; }
     table input:focus, table textarea:focus {
       outline: none; background: #fef3c7;
       box-shadow: inset 0 0 0 2px #fb923c;
@@ -212,11 +212,8 @@
 
     <!-- Cue Sheet Table -->
     <div class="card-section p-5 mb-5">
-      <div class="flex items-center justify-between mb-4">
+      <div class="mb-4">
         <h2 class="section-title">진행 순서</h2>
-        <button onclick="addRow()" class="btn-add px-3 py-1.5 rounded-lg text-sm font-medium">
-          + 행 추가
-        </button>
       </div>
       <div class="table-wrap">
         <table class="w-full text-sm" id="cuesheet-table">
@@ -240,10 +237,13 @@
     <!-- Action Buttons -->
     <div class="flex flex-wrap gap-3 mb-5 no-print">
       <button onclick="previewImage()" class="btn-gold px-5 py-2.5 rounded-lg text-sm font-medium">
-        👁 미리보기
+        미리보기
+      </button>
+      <button onclick="saveCueSheet()" class="bg-white hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-gray-200">
+        저장
       </button>
       <button onclick="shareImage()" class="bg-white hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-gray-200">
-        📤 공유하기
+        공유하기
       </button>
       <button onclick="resetToTemplate()" class="bg-white hover:bg-red-50 text-red-500 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-red-200">
         초기화
@@ -456,6 +456,13 @@ function renderTable() {
     `;
     tbody.appendChild(tr);
   });
+  // 모든 textarea 높이 자동 조정
+  setTimeout(function() {
+    document.querySelectorAll('#cuesheet-body textarea').forEach(function(ta) {
+      ta.style.height = 'auto';
+      ta.style.height = Math.max(44, ta.scrollHeight) + 'px';
+    });
+  }, 10);
 }
 
 function updateOrder(idx, val) {
@@ -498,19 +505,20 @@ function setTeamData(data) {
 }
 
 function collectCurrentData() {
-  // Sync from inputs
+  // Sync from inputs (내용은 textarea, 나머지는 input)
   const tbody = document.getElementById('cuesheet-body');
   const trs = tbody.querySelectorAll('tr');
   trs.forEach((tr, idx) => {
     const inputs = tr.querySelectorAll('input');
+    const textarea = tr.querySelector('textarea');
     if (rows[idx]) {
-      rows[idx].time = inputs[0].value;
-      rows[idx].order = inputs[1].value;
-      rows[idx].content = inputs[2].value;
-      rows[idx].person = inputs[3].value;
-      rows[idx].camera = inputs[4].value;
-      rows[idx].ppt = inputs[5].value;
-      rows[idx].isSermon = inputs[1].value.includes('설교');
+      rows[idx].time = inputs[0] ? inputs[0].value : '';
+      rows[idx].order = inputs[1] ? inputs[1].value : '';
+      rows[idx].content = textarea ? textarea.value : '';
+      rows[idx].person = inputs[2] ? inputs[2].value : '';
+      rows[idx].camera = inputs[3] ? inputs[3].value : '';
+      rows[idx].ppt = inputs[4] ? inputs[4].value : '';
+      rows[idx].isSermon = (inputs[1] ? inputs[1].value : '').includes('설교');
     }
   });
 }
