@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>예배 큐시트</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Noto Sans KR', sans-serif; }
+    .editable:focus { outline: 2px solid #f59e0b; outline-offset: -1px; border-radius: 2px; }
+    .sermon-row { background-color: #fef9c3 !important; }
+    @media print {
+      .no-print { display: none !important; }
+      body { padding: 0; margin: 0; }
+      .print-area { box-shadow: none !important; border: none !important; }
+    }
+    .tab-active { background-color: #f59e0b; color: white; }
+    .tab-inactive { background-color: #f3f4f6; color: #374151; }
+    .tab-inactive:hover { background-color: #e5e7eb; }
+    table input, table textarea {
+      background: transparent;
+      border: none;
+      width: 100%;
+      padding: 2px 4px;
+      font-size: 0.875rem;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    table input:focus, table textarea:focus {
+      outline: 2px solid #f59e0b;
+      outline-offset: -1px;
+      border-radius: 2px;
+      background: #fffbeb;
+    }
+    .saved-item:hover { background-color: #fef3c7; }
+    .delete-row-btn { opacity: 0; transition: opacity 0.15s; }
+    tr:hover .delete-row-btn { opacity: 1; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#f59e0b',
+            'primary-dark': '#d97706',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-amber-100 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+        <span class="text-2xl">+</span> 예배 큐시트
+      </h1>
+      <div class="flex gap-2">
+        <button onclick="showTab('editor')" id="tab-editor" class="px-4 py-2 rounded-lg text-sm font-medium transition tab-active">편집</button>
+        <button onclick="showTab('preview')" id="tab-preview" class="px-4 py-2 rounded-lg text-sm font-medium transition tab-inactive">미리보기</button>
+        <button onclick="showTab('saved')" id="tab-saved" class="px-4 py-2 rounded-lg text-sm font-medium transition tab-inactive">저장목록</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Editor Tab -->
+  <div id="view-editor" class="max-w-5xl mx-auto px-4 py-6">
+    <!-- Meta Info -->
+    <div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">기본 정보</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">날짜</label>
+          <input type="date" id="meta-date" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">예배</label>
+          <select id="meta-service" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+            <option value="1부">1부 예배</option>
+            <option value="2부" selected>2부 예배</option>
+            <option value="3부">3부 예배</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">시간</label>
+          <input type="text" id="meta-time" value="오전 11시" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+      </div>
+    </div>
+
+    <!-- Cue Sheet Table -->
+    <div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-700">진행 순서</h2>
+        <button onclick="addRow()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-sm font-medium transition border border-amber-200">
+          + 행 추가
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="cuesheet-table">
+          <thead>
+            <tr class="bg-gray-800 text-white">
+              <th class="px-3 py-2 text-left rounded-tl-lg w-24">시간</th>
+              <th class="px-3 py-2 text-left w-32">순서</th>
+              <th class="px-3 py-2 text-left">내용</th>
+              <th class="px-3 py-2 text-left w-24">담당자</th>
+              <th class="px-3 py-2 text-left w-24">카메라</th>
+              <th class="px-3 py-2 text-left w-28">PPT/비고</th>
+              <th class="px-3 py-2 text-center rounded-tr-lg w-10 no-print"></th>
+            </tr>
+          </thead>
+          <tbody id="cuesheet-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Team Assignment -->
+    <div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">담당자 배정</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="team-section">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">메신저</label>
+          <input type="text" data-team="messenger" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">인도자</label>
+          <input type="text" data-team="leader" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">대표기도자</label>
+          <input type="text" data-team="prayer" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">찬양팀</label>
+          <input type="text" data-team="worship" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">봉헌</label>
+          <input type="text" data-team="offering" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">안내</label>
+          <input type="text" data-team="usher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">영상팀</label>
+          <input type="text" data-team="media" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap gap-3 mb-10 no-print">
+      <button onclick="saveCueSheet()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm">
+        저장하기
+      </button>
+      <button onclick="showTab('preview')" class="bg-white hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-gray-200">
+        미리보기
+      </button>
+      <button onclick="resetToTemplate()" class="bg-white hover:bg-red-50 text-red-500 px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm border border-red-200">
+        초기화
+      </button>
+    </div>
+  </div>
+
+  <!-- Preview Tab -->
+  <div id="view-preview" class="max-w-4xl mx-auto px-4 py-6 hidden">
+    <div class="no-print flex flex-wrap gap-3 mb-5">
+      <button onclick="showTab('editor')" class="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition border border-gray-200">
+        ← 편집으로
+      </button>
+      <button onclick="downloadPDF()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+        PDF 다운로드
+      </button>
+      <button onclick="window.print()" class="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition border border-gray-200">
+        인쇄
+      </button>
+    </div>
+    <div id="preview-content" class="bg-white rounded-xl shadow-sm p-8 border border-gray-100 print-area">
+    </div>
+  </div>
+
+  <!-- Saved List Tab -->
+  <div id="view-saved" class="max-w-3xl mx-auto px-4 py-6 hidden">
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">저장된 큐시트</h2>
+      <div id="saved-list">
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm transform translate-y-20 opacity-0 transition-all duration-300 z-50"></div>
+
+<script>
+// Default template rows
+const DEFAULT_ROWS = [
+  { time: '~10:20', order: '예배준비', content: '예배 리허설', person: '', camera: '', ppt: '', isSermon: false },
+  { time: '~10:45', order: '예배준비', content: '예배 리허설', person: '찬양팀', camera: '', ppt: '', isSermon: false },
+  { time: '10:45~10:59', order: '예배준비', content: '환대 및 개인기도 / 예배로 나아가는 찬양', person: '찬양팀', camera: '', ppt: '찬양 가사', isSermon: false },
+  { time: '11:00~', order: '찬송', content: '입례송', person: '인도자', camera: '전체', ppt: '찬송가', isSermon: false },
+  { time: '', order: '예배로의 부름', content: '', person: '인도자', camera: '강대상', ppt: '', isSermon: false },
+  { time: '~11:15', order: '경배와 찬양', content: '', person: '찬양팀', camera: '찬양팀', ppt: '찬양 가사', isSermon: false },
+  { time: '11:15~', order: '합심기도', content: '가정 영역을 위한 기도', person: '인도자', camera: '회중', ppt: '기도제목', isSermon: false },
+  { time: '~11:20', order: '대표기도', content: '', person: '', camera: '강대상', ppt: '', isSermon: false },
+  { time: '11:20', order: '성가대', content: '', person: '성가대', camera: '성가대', ppt: '', isSermon: false },
+  { time: '~11:25', order: '성도의 교제', content: '', person: '인도자', camera: '회중', ppt: '', isSermon: false },
+  { time: '11:25~', order: '성경봉독', content: '', person: '인도자', camera: '강대상', ppt: '성경본문', isSermon: false },
+  { time: '', order: '설교', content: '', person: '담임목사', camera: '강대상', ppt: '설교 PPT', isSermon: true },
+  { time: '', order: '봉헌', content: '', person: '', camera: '회중', ppt: '봉헌 안내', isSermon: false },
+  { time: '', order: '봉헌기도 및 축도', content: '', person: '담임목사', camera: '강대상', ppt: '', isSermon: false },
+  { time: '', order: '축도 후', content: '', person: '', camera: '', ppt: '', isSermon: false },
+];
+
+let rows = [];
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  setDefaultDate();
+  resetToTemplate();
+});
+
+function setDefaultDate() {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = day === 0 ? 0 : 7 - day;
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() + diff);
+  document.getElementById('meta-date').value = formatDateValue(sunday);
+}
+
+function formatDateValue(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatDateDisplay(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const weekdays = ['일','월','화','수','목','금','토'];
+  const weekday = weekdays[d.getDay()];
+  return `${year}. ${month}.${day} ${weekday}요일`;
+}
+
+function resetToTemplate() {
+  rows = JSON.parse(JSON.stringify(DEFAULT_ROWS));
+  renderTable();
+  document.querySelectorAll('.team-input').forEach(el => el.value = '');
+}
+
+function renderTable() {
+  const tbody = document.getElementById('cuesheet-body');
+  tbody.innerHTML = '';
+  rows.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = `border-b border-gray-100 hover:bg-gray-50 ${row.isSermon ? 'sermon-row' : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50')}`;
+    tr.innerHTML = `
+      <td class="px-1 py-1"><input type="text" value="${esc(row.time)}" onchange="rows[${idx}].time=this.value" class="text-gray-600"></td>
+      <td class="px-1 py-1"><input type="text" value="${esc(row.order)}" onchange="updateOrder(${idx}, this.value)" class="font-medium text-gray-800"></td>
+      <td class="px-1 py-1"><input type="text" value="${esc(row.content)}" onchange="rows[${idx}].content=this.value" class="text-gray-600"></td>
+      <td class="px-1 py-1"><input type="text" value="${esc(row.person)}" onchange="rows[${idx}].person=this.value" class="text-gray-600"></td>
+      <td class="px-1 py-1"><input type="text" value="${esc(row.camera)}" onchange="rows[${idx}].camera=this.value" class="text-gray-600"></td>
+      <td class="px-1 py-1"><input type="text" value="${esc(row.ppt)}" onchange="rows[${idx}].ppt=this.value" class="text-gray-600"></td>
+      <td class="px-1 py-1 text-center no-print">
+        <button onclick="removeRow(${idx})" class="delete-row-btn text-red-400 hover:text-red-600 text-lg leading-none" title="삭제">&times;</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateOrder(idx, val) {
+  rows[idx].order = val;
+  rows[idx].isSermon = val.includes('설교');
+  renderTable();
+}
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addRow() {
+  rows.push({ time: '', order: '', content: '', person: '', camera: '', ppt: '', isSermon: false });
+  renderTable();
+  const tbody = document.getElementById('cuesheet-body');
+  const lastInput = tbody.lastElementChild.querySelector('input');
+  if (lastInput) lastInput.focus();
+}
+
+function removeRow(idx) {
+  if (rows.length <= 1) return;
+  rows.splice(idx, 1);
+  renderTable();
+}
+
+function getTeamData() {
+  const data = {};
+  document.querySelectorAll('.team-input').forEach(el => {
+    data[el.dataset.team] = el.value;
+  });
+  return data;
+}
+
+function setTeamData(data) {
+  if (!data) return;
+  document.querySelectorAll('.team-input').forEach(el => {
+    if (data[el.dataset.team] !== undefined) el.value = data[el.dataset.team];
+  });
+}
+
+function collectCurrentData() {
+  // Sync from inputs
+  const tbody = document.getElementById('cuesheet-body');
+  const trs = tbody.querySelectorAll('tr');
+  trs.forEach((tr, idx) => {
+    const inputs = tr.querySelectorAll('input');
+    if (rows[idx]) {
+      rows[idx].time = inputs[0].value;
+      rows[idx].order = inputs[1].value;
+      rows[idx].content = inputs[2].value;
+      rows[idx].person = inputs[3].value;
+      rows[idx].camera = inputs[4].value;
+      rows[idx].ppt = inputs[5].value;
+      rows[idx].isSermon = inputs[1].value.includes('설교');
+    }
+  });
+}
+
+// Tab switching
+function showTab(tab) {
+  ['editor','preview','saved'].forEach(t => {
+    document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+    const btn = document.getElementById('tab-' + t);
+    btn.className = btn.className.replace(/tab-active|tab-inactive/g, '').trim();
+    btn.classList.add(t === tab ? 'tab-active' : 'tab-inactive');
+  });
+  if (tab === 'preview') renderPreview();
+  if (tab === 'saved') renderSavedList();
+}
+
+// Preview
+function renderPreview() {
+  collectCurrentData();
+  const date = document.getElementById('meta-date').value;
+  const service = document.getElementById('meta-service').value;
+  const time = document.getElementById('meta-time').value;
+  const team = getTeamData();
+
+  const dateDisplay = formatDateDisplay(date);
+  const title = `${dateDisplay} ${service} (${time}) 예배 진행안`;
+
+  let html = `
+    <div style="text-align:center; margin-bottom: 24px;">
+      <h2 style="font-size:1.25rem; font-weight:700; color:#1f2937; margin-bottom:4px;">${title}</h2>
+    </div>
+    <table style="width:100%; border-collapse:collapse; font-size:0.85rem; margin-bottom:20px;">
+      <thead>
+        <tr style="background:#1f2937; color:white;">
+          <th style="padding:8px 10px; text-align:left; border:1px solid #374151; width:90px;">시간</th>
+          <th style="padding:8px 10px; text-align:left; border:1px solid #374151; width:110px;">순서</th>
+          <th style="padding:8px 10px; text-align:left; border:1px solid #374151;">내용</th>
+          <th style="padding:8px 10px; text-align:left; border:1px solid #374151; width:80px;">담당자</th>
+          <th style="padding:8px 10px; text-align:left; border:1px solid #374151; width:80px;">카메라</th>
+          <th style="padding:8px 10px; text-align:left; border:1px solid #374151; width:90px;">PPT/비고</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  rows.forEach((row, idx) => {
+    const bg = row.isSermon ? '#fef9c3' : (idx % 2 === 0 ? '#ffffff' : '#f9fafb');
+    const fw = row.isSermon ? 'font-weight:600;' : '';
+    html += `
+      <tr style="background:${bg};">
+        <td style="padding:6px 10px; border:1px solid #e5e7eb; color:#6b7280; ${fw}">${esc(row.time)}</td>
+        <td style="padding:6px 10px; border:1px solid #e5e7eb; font-weight:500; ${fw}">${esc(row.order)}</td>
+        <td style="padding:6px 10px; border:1px solid #e5e7eb; color:#4b5563; ${fw}">${esc(row.content)}</td>
+        <td style="padding:6px 10px; border:1px solid #e5e7eb; color:#6b7280; ${fw}">${esc(row.person)}</td>
+        <td style="padding:6px 10px; border:1px solid #e5e7eb; color:#6b7280; ${fw}">${esc(row.camera)}</td>
+        <td style="padding:6px 10px; border:1px solid #e5e7eb; color:#6b7280; ${fw}">${esc(row.ppt)}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+
+  // Team section
+  const teamLabels = {
+    messenger: '메신저', leader: '인도자', prayer: '대표기도자',
+    worship: '찬양팀', offering: '봉헌', usher: '안내', media: '영상팀'
+  };
+  const teamEntries = Object.entries(team).filter(([,v]) => v);
+  if (teamEntries.length > 0) {
+    html += `<div style="margin-top:16px; padding:12px 16px; background:#f9fafb; border-radius:8px; border:1px solid #e5e7eb;">`;
+    html += `<div style="font-weight:600; font-size:0.85rem; color:#374151; margin-bottom:8px;">담당자</div>`;
+    html += `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:4px 16px; font-size:0.8rem;">`;
+    teamEntries.forEach(([key, val]) => {
+      html += `<div><span style="color:#6b7280;">${teamLabels[key] || key}:</span> <span style="color:#1f2937; font-weight:500;">${esc(val)}</span></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  document.getElementById('preview-content').innerHTML = html;
+}
+
+// Save
+function saveCueSheet() {
+  collectCurrentData();
+  const date = document.getElementById('meta-date').value;
+  const service = document.getElementById('meta-service').value;
+  const key = `cuesheet_${date}_${service}`;
+  const data = {
+    date, service,
+    time: document.getElementById('meta-time').value,
+    rows: JSON.parse(JSON.stringify(rows)),
+    team: getTeamData(),
+    savedAt: new Date().toISOString()
+  };
+  localStorage.setItem(key, JSON.stringify(data));
+
+  // Update index
+  let index = JSON.parse(localStorage.getItem('cuesheet_index') || '[]');
+  if (!index.includes(key)) index.push(key);
+  localStorage.setItem('cuesheet_index', JSON.stringify(index));
+
+  showToast('저장되었습니다');
+}
+
+function loadCueSheet(key) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return;
+  const data = JSON.parse(raw);
+  document.getElementById('meta-date').value = data.date;
+  document.getElementById('meta-service').value = data.service;
+  document.getElementById('meta-time').value = data.time;
+  rows = data.rows;
+  setTeamData(data.team);
+  renderTable();
+  showTab('editor');
+  showToast('불러왔습니다');
+}
+
+function deleteCueSheet(key) {
+  if (!confirm('이 큐시트를 삭제하시겠습니까?')) return;
+  localStorage.removeItem(key);
+  let index = JSON.parse(localStorage.getItem('cuesheet_index') || '[]');
+  index = index.filter(k => k !== key);
+  localStorage.setItem('cuesheet_index', JSON.stringify(index));
+  renderSavedList();
+  showToast('삭제되었습니다');
+}
+
+function renderSavedList() {
+  const container = document.getElementById('saved-list');
+  const index = JSON.parse(localStorage.getItem('cuesheet_index') || '[]');
+  if (index.length === 0) {
+    container.innerHTML = '<p class="text-gray-400 text-sm py-8 text-center">저장된 큐시트가 없습니다.</p>';
+    return;
+  }
+  let html = '';
+  index.sort().reverse().forEach(key => {
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const dateDisplay = formatDateDisplay(data.date);
+    html += `
+      <div class="flex items-center justify-between py-3 px-4 border-b border-gray-100 saved-item rounded-lg cursor-pointer transition" onclick="loadCueSheet('${key}')">
+        <div>
+          <div class="font-medium text-gray-800 text-sm">${dateDisplay} ${data.service}</div>
+          <div class="text-xs text-gray-400 mt-0.5">저장: ${new Date(data.savedAt).toLocaleString('ko-KR')}</div>
+        </div>
+        <button onclick="event.stopPropagation(); deleteCueSheet('${key}')" class="text-red-400 hover:text-red-600 text-sm px-2 py-1 rounded hover:bg-red-50 transition">삭제</button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// PDF
+function downloadPDF() {
+  renderPreview();
+  const el = document.getElementById('preview-content');
+  const date = document.getElementById('meta-date').value;
+  const service = document.getElementById('meta-service').value;
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `큐시트_${date}_${service}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(el).save();
+}
+
+// Toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('translate-y-20', 'opacity-0');
+  t.classList.add('translate-y-0', 'opacity-100');
+  setTimeout(() => {
+    t.classList.add('translate-y-20', 'opacity-0');
+    t.classList.remove('translate-y-0', 'opacity-100');
+  }, 2000);
+}
+</script>
+
+</body>
+</html>
