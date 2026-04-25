@@ -144,7 +144,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-600 mb-1">날짜</label>
-          <input type="date" id="meta-date" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+          <input type="date" id="meta-date" onchange="updateDayLabel()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-600 mb-1">예배명</label>
@@ -348,11 +348,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setDefaultDate() {
   const today = new Date();
-  const day = today.getDay();
-  const diff = day === 0 ? 0 : 7 - day;
-  const sunday = new Date(today);
-  sunday.setDate(today.getDate() + diff);
-  document.getElementById('meta-date').value = formatDateValue(sunday);
+  document.getElementById('meta-date').value = formatDateValue(today);
+  updateDayLabel();
+}
+
+function updateDayLabel() {
+  const dateVal = document.getElementById('meta-date').value;
+  if (!dateVal) return;
+  const d = new Date(dateVal + 'T00:00:00');
+  const days = ['일','월','화','수','목','금','토'];
+  let label = document.getElementById('day-label');
+  if (!label) {
+    label = document.createElement('span');
+    label.id = 'day-label';
+    label.style.cssText = 'margin-left:8px;font-size:0.875rem;color:#f59e0b;font-weight:600;';
+    document.getElementById('meta-date').parentElement.appendChild(label);
+  }
+  label.textContent = '(' + days[d.getDay()] + '요일)';
 }
 
 function formatDateValue(d) {
