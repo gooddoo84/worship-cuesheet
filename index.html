@@ -355,7 +355,17 @@ document.addEventListener('input', function(e) {
       row.person = name;
     }
   });
-  renderTable();
+  // 테이블 전체 재생성 대신 담당자 셀만 업데이트 (스크롤/포커스 유지)
+  const tbody = document.getElementById('cuesheet-body');
+  const trs = tbody.querySelectorAll('tr');
+  rows.forEach((row, i) => {
+    if (trs[i]) {
+      const personInput = trs[i].querySelectorAll('input')[3]; // 4번째 input = 담당자
+      if (personInput && personInput !== document.activeElement) {
+        personInput.value = row.person || '';
+      }
+    }
+  });
 });
 
 function renderTable() {
