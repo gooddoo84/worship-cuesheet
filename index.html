@@ -84,12 +84,8 @@
           <input type="date" id="meta-date" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">예배</label>
-          <select id="meta-service" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
-            <option value="1부">1부 예배</option>
-            <option value="2부" selected>2부 예배</option>
-            <option value="3부">3부 예배</option>
-          </select>
+          <label class="block text-sm font-medium text-gray-600 mb-1">예배명</label>
+          <input type="text" id="meta-service" placeholder="주일 1부, 주일 2부, 주일 3부, 토요 예배" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-600 mb-1">예배 시작 시간</label>
@@ -147,8 +143,8 @@
       <h2 class="text-lg font-semibold text-gray-700 mb-4">담당자 배정</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="team-section">
         <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">메신저</label>
-          <input type="text" data-team="messenger" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
+          <label class="block text-sm font-medium text-gray-600 mb-1">설교자</label>
+          <input type="text" data-team="preacher" class="team-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-300 focus:border-amber-300">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-600 mb-1">인도자</label>
@@ -316,7 +312,7 @@ const TEAM_ROLE_MAP = {
   prayer: '대표기도',
   worship: '찬양팀',
   offering: '봉헌',
-  messenger: '메신저',
+  preacher: '설교자',
   usher: '안내',
   media: '영상팀',
 };
@@ -339,7 +335,7 @@ document.addEventListener('input', function(e) {
     const order = row.order || '';
 
     // 메신저 = 설교자 (담임목사 역할)
-    if (team === 'messenger' && (origPerson === '담임목사' || order.includes('설교') || order.includes('축도'))) {
+    if (team === 'preacher' && (origPerson === '담임목사' || order.includes('설교') || order.includes('축도'))) {
       row.person = name || '담임목사';
     }
     // 인도자
@@ -504,7 +500,7 @@ function renderPreview() {
 
   // Team section
   const teamLabels = {
-    messenger: '메신저', leader: '인도자', prayer: '대표기도자',
+    preacher: '설교자', leader: '인도자', prayer: '대표기도자',
     worship: '찬양팀', offering: '봉헌', usher: '안내', media: '영상팀'
   };
   const teamEntries = Object.entries(team).filter(([,v]) => v);
