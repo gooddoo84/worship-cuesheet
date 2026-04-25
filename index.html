@@ -269,37 +269,48 @@ const TEAM_ROLE_MAP = {
   media: '영상팀',
 };
 
+// 각 행의 원래 역할을 기억 (이름이 바뀌어도 역할 매핑 유지)
+function getOriginalRoles() {
+  return DEFAULT_ROWS.map(r => r.person);
+}
+
 document.addEventListener('input', function(e) {
   if (!e.target.classList.contains('team-input')) return;
   const team = e.target.dataset.team;
   const name = e.target.value.trim();
   if (!team) return;
 
-  const roleKeyword = TEAM_ROLE_MAP[team];
-  if (roleKeyword) {
-    rows.forEach(row => {
-      // person 필드가 역할명과 일치하거나, order가 일치하면 이름으로 교체
-      if (row.person === roleKeyword || row.order.includes(roleKeyword)) {
-        row.person = name || roleKeyword;
-      }
-    });
-  }
-  // 메신저 = 설교자 (설교, 봉헌기도 및 축도)
-  if (team === 'messenger') {
-    rows.forEach(row => {
-      if (row.person === '담임목사' || row.order.includes('설교') || row.order.includes('축도')) {
-        row.person = name || '담임목사';
-      }
-    });
-  }
-  // 대표기도자
-  if (team === 'prayer') {
-    rows.forEach(row => {
-      if (row.order.includes('대표기도')) {
-        row.person = name || '';
-      }
-    });
-  }
+  const origRoles = getOriginalRoles();
+
+  rows.forEach((row, i) => {
+    const origPerson = origRoles[i] || '';
+    const order = row.order || '';
+
+    // 메신저 = 설교자 (담임목사 역할)
+    if (team === 'messenger' && (origPerson === '담임목사' || order.includes('설교') || order.includes('축도'))) {
+      row.person = name || '담임목사';
+    }
+    // 인도자
+    if (team === 'leader' && origPerson === '인도자') {
+      row.person = name || '인도자';
+    }
+    // 대표기도자
+    if (team === 'prayer' && order.includes('대표기도')) {
+      row.person = name || '';
+    }
+    // 찬양팀
+    if (team === 'worship' && origPerson === '찬양팀') {
+      row.person = name || '찬양팀';
+    }
+    // 봉헌
+    if (team === 'offering' && order.includes('봉헌') && !order.includes('기도')) {
+      row.person = name || '';
+    }
+    // 성가대
+    if (team === 'media' && origPerson === '성가대') {
+      row.person = name || '성가대';
+    }
+  });
   renderTable();
 });
 
