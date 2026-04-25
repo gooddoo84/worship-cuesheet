@@ -258,6 +258,51 @@ function resetToTemplate() {
   document.querySelectorAll('.team-input').forEach(el => el.value = '');
 }
 
+// 담당자 입력 → 표에 자동 반영
+const TEAM_ROLE_MAP = {
+  leader: '인도자',
+  prayer: '대표기도',
+  worship: '찬양팀',
+  offering: '봉헌',
+  messenger: '메신저',
+  usher: '안내',
+  media: '영상팀',
+};
+
+document.addEventListener('input', function(e) {
+  if (!e.target.classList.contains('team-input')) return;
+  const team = e.target.dataset.team;
+  const name = e.target.value.trim();
+  if (!team) return;
+
+  const roleKeyword = TEAM_ROLE_MAP[team];
+  if (roleKeyword) {
+    rows.forEach(row => {
+      // person 필드가 역할명과 일치하거나, order가 일치하면 이름으로 교체
+      if (row.person === roleKeyword || row.order.includes(roleKeyword)) {
+        row.person = name || roleKeyword;
+      }
+    });
+  }
+  // 메신저 = 설교자 (설교, 봉헌기도 및 축도)
+  if (team === 'messenger') {
+    rows.forEach(row => {
+      if (row.person === '담임목사' || row.order.includes('설교') || row.order.includes('축도')) {
+        row.person = name || '담임목사';
+      }
+    });
+  }
+  // 대표기도자
+  if (team === 'prayer') {
+    rows.forEach(row => {
+      if (row.order.includes('대표기도')) {
+        row.person = name || '';
+      }
+    });
+  }
+  renderTable();
+});
+
 function renderTable() {
   const tbody = document.getElementById('cuesheet-body');
   tbody.innerHTML = '';
